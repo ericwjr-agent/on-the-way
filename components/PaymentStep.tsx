@@ -2,66 +2,85 @@
 
 import { useState } from 'react';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
+import emailjs from '@emailjs/browser';
 import { formatUSD } from '@/lib/pricing';
 import type { LocationData, QuoteData, ContactInfo } from '@/lib/types';
 
 interface Props {
-  location: LocationData;
-  quote:    QuoteData;
-  contact:  ContactInfo;
+  location:  LocationData;
+  quote:     QuoteData;
+  contact:   ContactInfo;
   onSuccess: () => void;
   onBack:    () => void;
 }
 
 export default function PaymentStep({ location, quote, contact, onSuccess, onBack }: Props) {
   const [{ isPending }] = usePayPalScriptReducer();
-  const [error, setError] = useState('');
+  const [error,      setError]      = useState('');
   const [processing, setProcessing] = useState(false);
 
-  const createOrder = async () => {
-    setError('');
-    const res = await fetch('/api/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        depositCents: quote.depositCents,
+  /** Fully client-side PayPal order via SDK actions */
+  const createOrder = (_: unknown, actions: any) => {
+    return actions.order.create({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: (quote.depositCents / 100).toFixed(2),
+        },
         description: `On the Way — Emergency Charge Deposit (${formatUSD(quote.priceCents)} total)`,
-      }),
+      }],
+      application_context: {
+        brand_name:  'On the Way',
+        user_action: 'PAY_NOW',
+      },
     });
-    if (!res.ok) throw new Error('Could not create PayPal order');
-    const { id } = await res.json();
-    return id as string;
   };
 
-  const onApprove = async (data: { orderID: string }) => {
+  const onApprove = async (_: unknown, actions: any) => {
     setProcessing(true);
     setError('');
     try {
-      const res = await fetch('/api/capture-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: data.orderID }),
-      });
-      if (!res.ok) throw new Error('Payment capture failed');
-
-      // Send notification to ops team
-      await fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location,
-          quote,
-          contact,
-          paypalOrderId: data.orderID,
-        }),
-      });
-
+      await actions.order.capture();
+      await sendEmailAlert();
       onSuccess();
     } catch (err: any) {
-      setError(err.message ?? 'Payment failed. Please try again.');
+      setError(err?.message ?? 'Payment failed. Please try again.');
       setProcessing(false);
     }
   };
+
+  async function sendEmailAlert() {
+    const serviceId  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+    if (!serviceId || !templateId || !publicKey) return; // not configured — PayPal email covers it
+
+    const now = new Date().toLocaleString('en-US', {
+      timeZone:  'America/New_York',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    try {
+      await emailjs.send(serviceId, templateId, {
+        booking_time:     now,
+        customer_name:    contact.name,
+        customer_phone:   contact.phone,
+        customer_email:   contact.email,
+        customer_address: location.address,
+        distance_miles:   quote.distanceMiles,
+        eta_minutes:      quote.etaMinutes,
+        total_price:      formatUSD(quote.priceCents),
+        deposit_paid:     formatUSD(quote.depositCents),
+        balance_due:      formatUSD(quote.remainingCents),
+        rush_hour:        quote.isRushHour ? 'Yes (+$100)' : 'No',
+      }, publicKey);
+    } catch (err) {
+      // Non-fatal — PayPal already sends merchant notification
+      console.warn('EmailJS alert failed (non-fatal):', err);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -82,7 +101,6 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
             <span>{formatUSD(quote.remainingCents)}</span>
           </div>
         </div>
-
         <div className="space-y-1 text-xs text-gray-500 border-t border-gray-700 pt-3">
           <p><span className="text-gray-400">Name:</span> {contact.name}</p>
           <p><span className="text-gray-400">Phone:</span> {contact.phone}</p>
@@ -91,9 +109,7 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
       </div>
 
       {error && (
-        <div className="p-3 bg-red-900/20 border border-red-800/40 rounded-xl text-red-400 text-sm">
-          {error}
-        </div>
+        <div className="p-3 bg-red-900/20 border border-red-800/40 rounded-xl text-red-400 text-sm">{error}</div>
       )}
 
       {processing ? (
@@ -109,19 +125,19 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
               Loading payment…
             </div>
           )}
-          <div className={isPending ? 'opacity-0' : 'opacity-100'}>
+          <div className={isPending ? 'opacity-0 pointer-events-none' : 'opacity-100'}>
             <PayPalButtons
               style={{ layout: 'vertical', shape: 'rect', color: 'gold', label: 'pay' }}
               createOrder={createOrder}
               onApprove={onApprove}
-              onError={(err) => setError('PayPal error. Please try again.')}
+              onError={() => setError('PayPal encountered an error. Please try again.')}
             />
           </div>
         </>
       )}
 
       <p className="text-xs text-center text-gray-600">
-        Secured by PayPal. Your card is charged {formatUSD(quote.depositCents)} now.
+        Secured by PayPal. You're charged {formatUSD(quote.depositCents)} now.
         The remaining {formatUSD(quote.remainingCents)} is due when your driver arrives.
       </p>
 

@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { formatUSD } from '@/lib/pricing';
+import { priceBreakdown, formatUSD, BUFFER_MINUTES } from '@/lib/pricing';
 import type { LocationData, QuoteData } from '@/lib/types';
+
+// Origin kept as a constant — not displayed in the UI
+const ORIGIN_LAT = 33.8074;
+const ORIGIN_LNG = -84.4602;
 
 interface Props {
   location: LocationData;
-  onNext: (quote: QuoteData) => void;
-  onBack: () => void;
+  onNext:   (quote: QuoteData) => void;
+  onBack:   () => void;
 }
 
 export default function QuoteStep({ location, onNext, onBack }: Props) {
@@ -16,34 +20,78 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
   const [error,   setError]   = useState('');
 
   useEffect(() => {
-    const fetchQuote = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await fetch('/api/distance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: location.address, lat: location.lat, lng: location.lng }),
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error ?? 'Failed to get quote');
+    if (typeof window === 'undefined' || !window.google) {
+      // Maps not ready yet — wait for it
+      const interval = setInterval(() => {
+        if (window.google?.maps) {
+          clearInterval(interval);
+          calculate();
         }
-        const data: QuoteData = await res.json();
-        setQuote(data);
-      } catch (err: any) {
-        setError(err.message ?? 'Something went wrong. Please try again.');
-      } finally {
+      }, 200);
+      return () => clearInterval(interval);
+    }
+    calculate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]);
+
+  function calculate() {
+    setLoading(true);
+    setError('');
+
+    const origin      = new window.google.maps.LatLng(ORIGIN_LAT, ORIGIN_LNG);
+    const destination = location.lat && location.lng
+      ? new window.google.maps.LatLng(location.lat, location.lng)
+      : location.address;
+
+    const service = new window.google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins:           [origin],
+        destinations:      [destination],
+        travelMode:        window.google.maps.TravelMode.DRIVING,
+        unitSystem:        window.google.maps.UnitSystem.IMPERIAL,
+        avoidHighways:     false,
+        avoidTolls:        false,
+      },
+      (response, status) => {
+        if (status !== 'OK' || !response) {
+          setError('Could not calculate distance. Please check your address and try again.');
+          setLoading(false);
+          return;
+        }
+
+        const element = response.rows[0]?.elements[0];
+        if (!element || element.status !== 'OK') {
+          setError('Location not reachable by road. Please enter a different address.');
+          setLoading(false);
+          return;
+        }
+
+        const distanceMiles  = element.distance.value * 0.000621371;
+        const drivingMinutes = Math.ceil(element.duration.value / 60);
+        const etaMinutes     = drivingMinutes + BUFFER_MINUTES;
+        const now            = new Date();
+        const bd             = priceBreakdown(distanceMiles, now);
+
+        setQuote({
+          distanceMiles:  Math.round(distanceMiles * 10) / 10,
+          drivingMinutes,
+          etaMinutes,
+          priceCents:     bd.total,
+          depositCents:   bd.deposit,
+          remainingCents: bd.remaining,
+          isRushHour:     bd.isRushHour,
+          breakdown: { base: bd.base, extra: bd.extra, rushFee: bd.rushFee },
+        });
         setLoading(false);
       }
-    };
-    fetchQuote();
-  }, [location]);
+    );
+  }
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-6">
-        <div className="spinner w-10 h-10 border-4" style={{ width: 48, height: 48, borderWidth: 4 }} />
+        <div style={{ width: 48, height: 48, borderWidth: 4 }} className="spinner" />
         <p className="text-gray-400">Calculating your price & ETA…</p>
       </div>
     );
@@ -52,9 +100,7 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
   if (error) {
     return (
       <div className="space-y-4">
-        <div className="p-4 bg-red-900/20 border border-red-800/40 rounded-xl text-red-400 text-sm">
-          {error}
-        </div>
+        <div className="p-4 bg-red-900/20 border border-red-800/40 rounded-xl text-red-400 text-sm">{error}</div>
         <button onClick={onBack} className="btn-secondary w-full">← Try Again</button>
       </div>
     );
@@ -73,19 +119,15 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
         </div>
       </div>
 
-      {/* ETA */}
+      {/* ETA + Distance */}
       <div className="grid grid-cols-2 gap-4">
         <div className="card text-center">
-          <p className="text-4xl font-black text-brand-cyan mb-1">
-            ~{quote.etaMinutes}
-          </p>
+          <p className="text-4xl font-black text-brand-cyan mb-1">~{quote.etaMinutes}</p>
           <p className="text-xs text-gray-400 uppercase tracking-widest">min ETA</p>
           <p className="text-xs text-gray-600 mt-1">incl. 20 min prep</p>
         </div>
         <div className="card text-center">
-          <p className="text-4xl font-black text-white mb-1">
-            {quote.distanceMiles.toFixed(1)}
-          </p>
+          <p className="text-4xl font-black text-white mb-1">{quote.distanceMiles.toFixed(1)}</p>
           <p className="text-xs text-gray-400 uppercase tracking-widest">miles away</p>
         </div>
       </div>
@@ -127,15 +169,13 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
 
       {quote.isRushHour && (
         <div className="p-3 bg-amber-900/20 border border-amber-800/40 rounded-xl text-amber-400 text-xs">
-          ⏰ Rush hour surcharge applied — we're busier right now but still coming!
+          ⏰ Rush hour surcharge applied — we're busier right now but still on the way!
         </div>
       )}
 
       <div className="flex gap-3">
         <button onClick={onBack} className="btn-secondary flex-1">← Back</button>
-        <button onClick={() => onNext(quote)} className="btn-primary flex-1">
-          Continue to Book
-        </button>
+        <button onClick={() => onNext(quote)} className="btn-primary flex-1">Continue to Book</button>
       </div>
     </div>
   );

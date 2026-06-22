@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import emailjs from '@emailjs/browser';
 
 export default function DriverPage() {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', city: '',
     hasCybertruck: '', experience: '', message: '',
   });
-  const [status,     setStatus]    = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errorMsg,   setErrorMsg]  = useState('');
+  const [status,   setStatus]   = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -18,16 +19,26 @@ export default function DriverPage() {
     e.preventDefault();
     setStatus('loading');
     setErrorMsg('');
+
+    const serviceId  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_DRIVER_TEMPLATE_ID;
+    const publicKey  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
     try {
-      const res = await fetch('/api/driver-signup', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ ...form, hasCybertruck: form.hasCybertruck === 'yes' }),
-      });
-      if (!res.ok) throw new Error('Submission failed');
+      if (serviceId && templateId && publicKey) {
+        await emailjs.send(serviceId, templateId, {
+          driver_name:     form.name,
+          driver_email:    form.email,
+          driver_phone:    form.phone,
+          driver_city:     form.city || 'N/A',
+          has_cybertruck:  form.hasCybertruck === 'yes' ? 'Yes ✅' : 'No ❌',
+          experience:      form.experience || 'N/A',
+          extra_message:   form.message || 'N/A',
+        }, publicKey);
+      }
       setStatus('success');
     } catch {
-      setErrorMsg('Something went wrong. Please try again.');
+      setErrorMsg('Something went wrong. Please try again or email us directly.');
       setStatus('error');
     }
   };
@@ -42,9 +53,7 @@ export default function DriverPage() {
             On the <span className="text-brand-cyan">Way</span>
           </span>
         </Link>
-        <Link href="/book" className="btn-primary text-sm py-2 px-5">
-          Get Help Now
-        </Link>
+        <Link href="/book" className="btn-primary text-sm py-2 px-5">Get Help Now</Link>
       </nav>
 
       {/* Hero */}
@@ -66,9 +75,9 @@ export default function DriverPage() {
       <section className="py-16 px-6 bg-gray-900/50">
         <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
           {[
-            { icon: '💰', title: 'Earn Per Call', desc: 'Get paid for each dispatch you accept. Top drivers earn $500+ per weekend.' },
-            { icon: '📅', title: 'Your Schedule', desc: 'Go online when you want. Accept or decline any call. No minimums.' },
-            { icon: '⚡', title: 'EV Revolution', desc: "Be part of solving range anxiety. You're not just earning — you're making EVs work." },
+            { icon: '💰', title: 'Earn Per Call',   desc: 'Get paid for each dispatch you accept. Top drivers earn $500+ per weekend.' },
+            { icon: '📅', title: 'Your Schedule',   desc: 'Go online when you want. Accept or decline any call. No minimums.' },
+            { icon: '⚡', title: 'EV Revolution',  desc: "Be part of solving range anxiety. You're not just earning — you're making EVs work." },
           ].map((b) => (
             <div key={b.title} className="card text-center hover:border-brand-cyan/30 transition-colors">
               <div className="text-4xl mb-4">{b.icon}</div>
@@ -122,20 +131,14 @@ export default function DriverPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Do you own a Cybertruck? *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Do you own a Cybertruck? *</label>
                 <div className="grid grid-cols-2 gap-3">
                   {['yes', 'no'].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => update('hasCybertruck', val)}
+                    <button key={val} type="button" onClick={() => update('hasCybertruck', val)}
                       className={`py-3 rounded-xl border font-medium transition-all capitalize
                         ${form.hasCybertruck === val
                           ? 'border-brand-cyan bg-brand-cyan/10 text-brand-cyan'
-                          : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
-                    >
+                          : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
                       {val === 'yes' ? '✅ Yes' : '❌ No (not yet!)'}
                     </button>
                   ))}
@@ -143,9 +146,7 @@ export default function DriverPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Any EV or roadside assistance experience?
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Any EV or roadside assistance experience?</label>
                 <select value={form.experience} onChange={(e) => update('experience', e.target.value)}
                   className="input-brand">
                   <option value="">Select…</option>
@@ -158,29 +159,18 @@ export default function DriverPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Anything else?</label>
-                <textarea
-                  value={form.message}
-                  onChange={(e) => update('message', e.target.value)}
-                  placeholder="Tell us a bit about yourself or ask any questions…"
-                  rows={3}
-                  className="input-brand resize-none"
-                />
+                <textarea value={form.message} onChange={(e) => update('message', e.target.value)}
+                  placeholder="Tell us a bit about yourself…" rows={3} className="input-brand resize-none" />
               </div>
 
-              {status === 'error' && (
-                <p className="text-red-400 text-sm">{errorMsg}</p>
-              )}
+              {status === 'error' && <p className="text-red-400 text-sm">{errorMsg}</p>}
 
               <button
                 type="submit"
                 disabled={status === 'loading' || !form.name || !form.email || !form.phone || !form.hasCybertruck}
                 className="btn-primary w-full flex items-center justify-center gap-3"
               >
-                {status === 'loading' ? (
-                  <><span className="spinner" /> Submitting…</>
-                ) : (
-                  <>Submit Application →</>
-                )}
+                {status === 'loading' ? <><span className="spinner" /> Submitting…</> : <>Submit Application →</>}
               </button>
 
               <p className="text-xs text-center text-gray-600">
@@ -191,11 +181,9 @@ export default function DriverPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-8 px-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <Link href="/" className="flex items-center justify-center gap-2 mb-2">
-          <span>⚡</span>
-          <span className="font-semibold text-white">On the Way</span>
+          <span>⚡</span><span className="font-semibold text-white">On the Way</span>
         </Link>
         <p>© {new Date().getFullYear()} On the Way. All rights reserved.</p>
       </footer>

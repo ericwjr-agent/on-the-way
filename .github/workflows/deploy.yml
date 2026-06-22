@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build & Deploy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (static export)
+        run: npm run build
+        env:
+          NEXT_PUBLIC_BASE_PATH:                 /on-the-way
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:       ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          NEXT_PUBLIC_PAYPAL_CLIENT_ID:          ${{ secrets.PAYPAL_CLIENT_ID }}
+          NEXT_PUBLIC_EMAILJS_SERVICE_ID:        ${{ secrets.EMAILJS_SERVICE_ID }}
+          NEXT_PUBLIC_EMAILJS_TEMPLATE_ID:       ${{ secrets.EMAILJS_TEMPLATE_ID }}
+          NEXT_PUBLIC_EMAILJS_DRIVER_TEMPLATE_ID: ${{ secrets.EMAILJS_DRIVER_TEMPLATE_ID }}
+          NEXT_PUBLIC_EMAILJS_PUBLIC_KEY:        ${{ secrets.EMAILJS_PUBLIC_KEY }}
+
+      - name: Add .nojekyll (required for Next.js on Pages)
+        run: touch out/.nojekyll
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir:  ./out
+          cname:        ""   # set your custom domain here if you have one

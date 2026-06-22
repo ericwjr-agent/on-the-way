@@ -20,25 +20,27 @@ export default function LocationStep({ onNext }: Props) {
   const [loading,   setLoading]   = useState(false);
   const [geoError,  setGeoError]  = useState('');
   const [mapsReady, setMapsReady] = useState(false);
-  const inputRef    = useRef<HTMLInputElement>(null);
+  const inputRef     = useRef<HTMLInputElement>(null);
   const autocomplete = useRef<google.maps.places.Autocomplete | null>(null);
+  const latRef       = useRef<number>(0);
+  const lngRef       = useRef<number>(0);
 
-  // Load Google Maps script
+  // Load Google Maps JS API once
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey || document.getElementById('google-maps-script')) {
-      setMapsReady(true);
-      return;
-    }
+    if (typeof window === 'undefined') return;
+    if (window.google?.maps) { setMapsReady(true); return; }
+    if (document.getElementById('google-maps-script')) return;
+
     window.initGoogleMaps = () => setMapsReady(true);
     const script = document.createElement('script');
-    script.id  = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
+    script.id    = 'google-maps-script';
+    script.src   = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps`;
     script.async = true;
     document.head.appendChild(script);
   }, []);
 
-  // Init autocomplete once maps are ready
+  // Attach Places Autocomplete
   useEffect(() => {
     if (!mapsReady || !inputRef.current || !window.google) return;
     autocomplete.current = new window.google.maps.places.Autocomplete(inputRef.current, {
@@ -47,37 +49,44 @@ export default function LocationStep({ onNext }: Props) {
     });
     autocomplete.current.addListener('place_changed', () => {
       const place = autocomplete.current?.getPlace();
-      if (place?.formatted_address) {
-        setAddress(place.formatted_address);
+      if (place?.formatted_address) setAddress(place.formatted_address);
+      if (place?.geometry?.location) {
+        latRef.current = place.geometry.location.lat();
+        lngRef.current = place.geometry.location.lng();
       }
     });
   }, [mapsReady]);
 
+  // Use device location → reverse geocode via Maps JS Geocoder
   const handleGeolocate = useCallback(() => {
     setGeoError('');
-    setLoading(true);
     if (!navigator.geolocation) {
-      setGeoError('Geolocation is not supported by your browser.');
-      setLoading(false);
+      setGeoError('Geolocation not supported by your browser.');
       return;
     }
+    setLoading(true);
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
-          );
-          const data = await res.json();
-          const addr = data.results?.[0]?.formatted_address ?? `${latitude}, ${longitude}`;
-          setAddress(addr);
-        } catch {
-          setGeoError('Could not reverse geocode your location.');
-        } finally {
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        latRef.current = latitude;
+        lngRef.current = longitude;
+
+        if (!window.google) {
+          setAddress(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
           setLoading(false);
+          return;
         }
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+          setLoading(false);
+          if (status === 'OK' && results?.[0]) {
+            setAddress(results[0].formatted_address);
+          } else {
+            setAddress(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          }
+        });
       },
-      (err) => {
+      () => {
         setGeoError('Location access denied. Please enter your address manually.');
         setLoading(false);
       }
@@ -86,23 +95,14 @@ export default function LocationStep({ onNext }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!address.trim()) return;
-    if (isHighway) return;
-
-    // Get lat/lng from autocomplete or default to 0,0 (will be resolved server-side)
-    const place = autocomplete.current?.getPlace();
-    const lat   = place?.geometry?.location?.lat() ?? 0;
-    const lng   = place?.geometry?.location?.lng() ?? 0;
-
-    onNext({ address: address.trim(), lat, lng, isHighway });
+    if (!address.trim() || isHighway) return;
+    onNext({ address: address.trim(), lat: latRef.current, lng: lngRef.current, isHighway });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Your current location
-        </label>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Your current location</label>
         <input
           ref={inputRef}
           type="text"
@@ -114,28 +114,24 @@ export default function LocationStep({ onNext }: Props) {
         />
       </div>
 
-      {/* Use My Location */}
       <button
         type="button"
         onClick={handleGeolocate}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 border border-gray-700
-                   text-gray-300 hover:border-brand-cyan hover:text-brand-cyan
-                   py-3 rounded-xl transition-all duration-200 text-sm font-medium"
+        className="w-full flex items-center justify-center gap-3 border border-gray-700 text-gray-300
+                   hover:border-brand-cyan hover:text-brand-cyan py-3 rounded-xl transition-all text-sm font-medium"
       >
         {loading ? <span className="spinner" /> : <span>📍</span>}
         {loading ? 'Getting your location…' : 'Use My Current Location'}
       </button>
 
-      {geoError && (
-        <p className="text-red-400 text-sm">{geoError}</p>
-      )}
+      {geoError && <p className="text-red-400 text-sm">{geoError}</p>}
 
-      {/* Highway check */}
+      {/* Highway checkbox */}
       <div
-        className={`flex items-start gap-3 p-4 rounded-xl border transition-colors cursor-pointer
-          ${isHighway ? 'border-red-500/60 bg-red-900/20' : 'border-gray-700 hover:border-gray-600'}`}
         onClick={() => setIsHighway(!isHighway)}
+        className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors
+          ${isHighway ? 'border-red-500/60 bg-red-900/20' : 'border-gray-700 hover:border-gray-600'}`}
       >
         <div className={`w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors
           ${isHighway ? 'bg-red-500 border-red-500' : 'border-gray-600'}`}>
@@ -150,7 +146,7 @@ export default function LocationStep({ onNext }: Props) {
       {isHighway && (
         <div className="p-4 bg-red-900/20 border border-red-800/40 rounded-xl text-red-400 text-sm">
           <p className="font-semibold mb-1">⚠️ Highway locations not supported</p>
-          <p>For your safety, we can only service local roads. Please exit the highway and call us when you're safely pulled over.</p>
+          <p>For your safety, please exit the highway and call us once safely pulled over on a local road.</p>
         </div>
       )}
 
