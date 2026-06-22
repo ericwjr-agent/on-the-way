@@ -1,0 +1,11 @@
+# On the Way — Code Owners
+# These users are required reviewers for all pull requests.
+
+# Global ownership
+* @ericwjr @ericwjr-agent
+
+# API routes — sensitive (payments, notifications)
+/app/api/ @ericwjr @ericwjr-agent
+
+# Pricing logic — business critical
+/lib/pricing.ts @ericwjr @ericwjr-agent

@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-cyan:   #00d4ff;
+  --brand-blue:   #0ea5e9;
+  --brand-purple: #7c3aed;
+  --brand-dark:   #0a0a0f;
+  --brand-card:   #111827;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--brand-dark);
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* Cyan glow utility */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(0, 212, 255, 0.15);
+}
+
+.glow-cyan-text {
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+}
+
+/* Grid background pattern */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Step indicator */
+.step-active {
+  background: linear-gradient(135deg, #00d4ff, #0ea5e9);
+  color: #000;
+}
+
+.step-done {
+  background: #059669;
+  color: #fff;
+}
+
+.step-pending {
+  background: #1f2937;
+  color: #6b7280;
+}
+
+/* Input focus ring */
+.input-brand {
+  @apply w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white
+         placeholder-gray-500 focus:outline-none focus:border-brand-cyan focus:ring-1
+         focus:ring-brand-cyan transition-all duration-200;
+}
+
+/* Card style */
+.card {
+  @apply bg-gray-900 border border-gray-800 rounded-2xl p-6;
+}
+
+/* Primary CTA button */
+.btn-primary {
+  @apply bg-brand-cyan text-black font-bold py-4 px-8 rounded-xl
+         hover:bg-sky-300 active:scale-95 transition-all duration-200
+         disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+/* Secondary button */
+.btn-secondary {
+  @apply border border-brand-cyan text-brand-cyan font-semibold py-4 px-8 rounded-xl
+         hover:bg-brand-cyan hover:text-black active:scale-95 transition-all duration-200;
+}
+
+/* Spinner */
+.spinner {
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--brand-cyan);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
