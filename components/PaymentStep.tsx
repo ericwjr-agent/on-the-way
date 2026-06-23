@@ -19,30 +19,28 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
   const [error,      setError]      = useState('');
   const [processing, setProcessing] = useState(false);
 
-  /** Fully client-side PayPal order via SDK actions */
-  const createOrder = (_: unknown, actions: any) => {
-    return actions.order.create({
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: 'USD',
-          value: (quote.depositCents / 100).toFixed(2),
-        },
+  /** Server-side PayPal order creation */
+  const createOrder = async (): Promise<string> => {
+    const res = await fetch('/api/orders/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount:      (quote.depositCents / 100).toFixed(2),
         description: `On the Way — Emergency Charge Deposit (${formatUSD(quote.priceCents)} total)`,
-      }],
-      application_context: {
-        brand_name:          'On the Way',
-        user_action:         'PAY_NOW',
-        shipping_preference: 'NO_SHIPPING',
-      },
+      }),
     });
+    const data = await res.json();
+    if (!data.id) throw new Error(data.error ?? 'Failed to create order');
+    return data.id;
   };
 
-  const onApprove = async (_: unknown, actions: any) => {
+  const onApprove = async (data: { orderID: string }, _actions: unknown) => {
     setProcessing(true);
     setError('');
     try {
-      await actions.order.capture();
+      const res = await fetch(`/api/orders/${data.orderID}/capture/`, { method: 'POST' });
+      const capture = await res.json();
+      if (!res.ok || capture.error) throw new Error(capture.error ?? 'Capture failed');
       await sendEmailAlert();
       onSuccess();
     } catch (err: any) {
