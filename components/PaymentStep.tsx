@@ -33,6 +33,8 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
       application_context: {
         brand_name:  'On the Way',
         user_action: 'PAY_NOW',
+        return_url:  'https://ericwjr-agent.github.io/on-the-way/book/',
+        cancel_url:  'https://ericwjr-agent.github.io/on-the-way/book/',
       },
     });
   };
