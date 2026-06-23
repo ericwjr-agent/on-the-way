@@ -31,10 +31,9 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
         description: `On the Way — Emergency Charge Deposit (${formatUSD(quote.priceCents)} total)`,
       }],
       application_context: {
-        brand_name:  'On the Way',
-        user_action: 'PAY_NOW',
-        return_url:  'https://ericwjr-agent.github.io/on-the-way/book/',
-        cancel_url:  'https://ericwjr-agent.github.io/on-the-way/book/',
+        brand_name:          'On the Way',
+        user_action:         'PAY_NOW',
+        shipping_preference: 'NO_SHIPPING',
       },
     });
   };
@@ -132,6 +131,7 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
               style={{ layout: 'vertical', shape: 'rect', color: 'gold', label: 'pay' }}
               createOrder={createOrder}
               onApprove={onApprove}
+              onCancel={() => setError('Payment cancelled. Click the button above to try again.')}
               onError={() => setError('PayPal encountered an error. Please try again.')}
             />
           </div>
