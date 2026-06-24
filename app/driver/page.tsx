@@ -61,7 +61,7 @@ export default function DriverPage() {
         <div className="absolute inset-0 bg-gradient-radial from-brand-purple/15 to-transparent" />
         <div className="relative z-10 max-w-2xl mx-auto">
           <div className="mb-6">
-            <img src="/cybertruck.jpg" alt="Cybertruck" width={280} className="mx-auto object-contain rounded-xl" />
+            <img src="/cybertruck.png" alt="Cybertruck" width={280} className="mx-auto object-contain rounded-xl" />
           </div>
           <h1 className="text-5xl font-black mb-4">
             Drive with <span className="text-brand-cyan">Cyber Juice</span>
