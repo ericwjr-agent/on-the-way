@@ -13,7 +13,7 @@ export default function BookPage() {
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl">⚡</span>
           <span className="text-lg font-bold">
-            On the <span className="text-brand-cyan">Way</span>
+            Cyber <span className="text-brand-cyan">Juice</span>
           </span>
         </Link>
         <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">

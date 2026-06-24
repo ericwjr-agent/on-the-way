@@ -50,7 +50,7 @@ export default function DriverPage() {
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl">⚡</span>
           <span className="text-lg font-bold">
-            On the <span className="text-brand-cyan">Way</span>
+            Cyber <span className="text-brand-cyan">Juice</span>
           </span>
         </Link>
         <Link href="/book" className="btn-primary text-sm py-2 px-5">Get Help Now</Link>
