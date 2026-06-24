@@ -42,7 +42,7 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
       : location.address;
 
     // 1 — Find nearest Supercharger
-    let superchargerLatLng: window.google.maps.LatLng | null = null;
+    let superchargerLatLng: google.maps.LatLng | null = null;
     let superchargerName = '';
     try {
       const params = location.lat && location.lng
