@@ -63,7 +63,7 @@ export default function HomePage() {
               Request Emergency Charge
             </Link>
             <Link href="/driver" className="btn-secondary text-lg py-5 px-10 flex items-center gap-3">
-              <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={32} className="object-contain" />
+              <Image src="/cybertruck.jpg" alt="Cybertruck" width={36} height={36} className="object-contain rounded" />
               Become a Driver
             </Link>
           </div>
@@ -178,7 +178,7 @@ export default function HomePage() {
       <section className="py-24 px-6 bg-gradient-to-br from-brand-purple/20 via-transparent to-brand-cyan/10">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-6">
-            <Image src="/cybertruck.png" alt="Cybertruck" width={200} height={200} className="mx-auto object-contain" />
+            <Image src="/cybertruck.jpg" alt="Cybertruck" width={280} height={200} className="mx-auto object-contain rounded-xl" />
           </div>
           <h2 className="text-4xl font-bold mb-4">Own a Cybertruck?</h2>
           <p className="text-gray-400 text-xl mb-8">
