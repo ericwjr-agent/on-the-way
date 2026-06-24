@@ -83,17 +83,19 @@ export default function HomePage() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2
-                        text-gray-600 text-sm animate-bounce">
+        <button
+          onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2
+                     text-gray-600 hover:text-gray-400 text-sm animate-bounce transition-colors cursor-pointer">
           <span>Learn more</span>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-        </div>
+        </button>
       </section>
 
       {/* How It Works */}
-      <section className="py-24 px-6 bg-gray-900/50">
+      <section id="how-it-works" className="py-24 px-6 bg-gray-900/50">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4">How It Works</h2>
           <p className="text-gray-400 text-center mb-16 text-lg">Back on the road in minutes, not hours.</p>
