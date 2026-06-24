@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { priceBreakdown, formatUSD, BUFFER_MINUTES } from '@/lib/pricing';
+import { priceBreakdown, formatUSD, BUFFER_MINUTES, MAX_SUPERCHARGER_MILES } from '@/lib/pricing';
 import type { LocationData, QuoteData } from '@/lib/types';
 
 // Origin kept as a constant — not displayed in the UI
@@ -34,24 +34,47 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
-  function calculate() {
+  async function calculate() {
     setLoading(true);
     setError('');
 
-    const origin      = new window.google.maps.LatLng(ORIGIN_LAT, ORIGIN_LNG);
-    const destination = location.lat && location.lng
+    const customerLatLng = location.lat && location.lng
       ? new window.google.maps.LatLng(location.lat, location.lng)
       : location.address;
 
+    // 1 — Find nearest Supercharger
+    let superchargerLatLng: window.google.maps.LatLng | null = null;
+    let superchargerName = '';
+    try {
+      const params = location.lat && location.lng
+        ? `lat=${location.lat}&lng=${location.lng}`
+        : `lat=${location.lat}&lng=${location.lng}`;
+      const scRes  = await fetch(`/api/supercharger/?${params}`);
+      const scData = await scRes.json();
+      if (scData.lat && scData.lng) {
+        superchargerLatLng = new window.google.maps.LatLng(scData.lat, scData.lng);
+        superchargerName   = scData.vicinity ?? scData.name ?? 'Supercharger';
+      }
+    } catch {
+      // non-fatal — we'll handle below
+    }
+
+    if (!superchargerLatLng) {
+      setError('Could not locate a nearby Tesla Supercharger. We may not be able to service this area.');
+      setLoading(false);
+      return;
+    }
+
+    // 2 — Distance Matrix: driver→customer AND customer→supercharger in one call
+    const origin = new window.google.maps.LatLng(ORIGIN_LAT, ORIGIN_LNG);
     const service = new window.google.maps.DistanceMatrixService();
+
     service.getDistanceMatrix(
       {
-        origins:           [origin],
-        destinations:      [destination],
-        travelMode:        window.google.maps.TravelMode.DRIVING,
-        unitSystem:        window.google.maps.UnitSystem.IMPERIAL,
-        avoidHighways:     false,
-        avoidTolls:        false,
+        origins:      [origin, customerLatLng],
+        destinations: [customerLatLng, superchargerLatLng],
+        travelMode:   window.google.maps.TravelMode.DRIVING,
+        unitSystem:   window.google.maps.UnitSystem.IMPERIAL,
       },
       (response, status) => {
         if (status !== 'OK' || !response) {
@@ -60,28 +83,48 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
           return;
         }
 
-        const element = response.rows[0]?.elements[0];
-        if (!element || element.status !== 'OK') {
+        // driver → customer
+        const driverEl = response.rows[0]?.elements[0];
+        // customer → supercharger
+        const scEl     = response.rows[1]?.elements[1];
+
+        if (!driverEl || driverEl.status !== 'OK') {
           setError('Location not reachable by road. Please enter a different address.');
           setLoading(false);
           return;
         }
 
-        const distanceMiles  = element.distance.value * 0.000621371;
-        const drivingMinutes = Math.ceil(element.duration.value / 60);
-        const etaMinutes     = drivingMinutes + BUFFER_MINUTES;
-        const now            = new Date();
-        const bd             = priceBreakdown(distanceMiles, now);
+        const distanceMiles      = driverEl.distance.value * 0.000621371;
+        const drivingMinutes     = Math.ceil(driverEl.duration.value / 60);
+        const etaMinutes         = drivingMinutes + BUFFER_MINUTES;
+        const superchargerMiles  = scEl?.status === 'OK'
+          ? Math.round(scEl.distance.value * 0.000621371 * 10) / 10
+          : 0;
+
+        // 3 — Block if Supercharger is too far
+        if (superchargerMiles > MAX_SUPERCHARGER_MILES) {
+          setError(
+            `The nearest Supercharger is ${superchargerMiles.toFixed(1)} miles away — ` +
+            `we can only help if it's within ${MAX_SUPERCHARGER_MILES} miles.`
+          );
+          setLoading(false);
+          return;
+        }
+
+        const now = new Date();
+        const bd  = priceBreakdown(distanceMiles, now, superchargerMiles);
 
         setQuote({
-          distanceMiles:  Math.round(distanceMiles * 10) / 10,
+          distanceMiles:    Math.round(distanceMiles * 10) / 10,
           drivingMinutes,
           etaMinutes,
-          priceCents:     bd.total,
-          depositCents:   bd.deposit,
-          remainingCents: bd.remaining,
-          isRushHour:     bd.isRushHour,
-          breakdown: { base: bd.base, extra: bd.extra, rushFee: bd.rushFee },
+          priceCents:       bd.total,
+          depositCents:     bd.deposit,
+          remainingCents:   bd.remaining,
+          isRushHour:       bd.isRushHour,
+          superchargerMiles,
+          superchargerName,
+          breakdown: { base: bd.base, extra: bd.extra, rushFee: bd.rushFee, rangeFee: bd.rangeFee },
         });
         setLoading(false);
       }
@@ -132,6 +175,16 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
         </div>
       </div>
 
+      {/* Supercharger info */}
+      <div className="flex items-start gap-3 p-4 bg-gray-900 rounded-xl border border-gray-800">
+        <span className="text-lg mt-0.5">🔌</span>
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Nearest Supercharger</p>
+          <p className="text-sm font-medium text-gray-200">{quote.superchargerName}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{quote.superchargerMiles.toFixed(1)} miles from your location</p>
+        </div>
+      </div>
+
       {/* Price breakdown */}
       <div className="card">
         <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-4">Price Breakdown</h3>
@@ -144,6 +197,14 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
             <div className="flex justify-between">
               <span className="text-gray-400">Distance surcharge</span>
               <span>+{formatUSD(quote.breakdown.extra)}</span>
+            </div>
+          )}
+          {quote.breakdown.rangeFee > 0 && (
+            <div className="flex justify-between text-brand-cyan">
+              <span className="text-gray-400">
+                Range fee ({quote.superchargerMiles.toFixed(1)} mi to Supercharger)
+              </span>
+              <span>+{formatUSD(quote.breakdown.rangeFee)}</span>
             </div>
           )}
           {quote.isRushHour && (

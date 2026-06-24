@@ -7,16 +7,19 @@ export interface LocationData {
 
 export interface QuoteData {
   distanceMiles: number;
-  drivingMinutes: number;    // from Google Maps
-  etaMinutes: number;        // drivingMinutes + 20 buffer
+  drivingMinutes: number;       // from Google Maps
+  etaMinutes: number;           // drivingMinutes + 20 buffer
   priceCents: number;
   depositCents: number;
   remainingCents: number;
   isRushHour: boolean;
+  superchargerMiles: number;    // driving miles from customer to nearest Supercharger
+  superchargerName: string;     // name/vicinity of nearest Supercharger
   breakdown: {
     base: number;
     extra: number;
     rushFee: number;
+    rangeFee: number;
   };
 }
 
