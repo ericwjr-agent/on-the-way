@@ -26,7 +26,7 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         amount:      (quote.depositCents / 100).toFixed(2),
-        description: `On the Way — Emergency Charge Deposit (${formatUSD(quote.priceCents)} total)`,
+        description: `Cyber Juice — Emergency Charge Deposit (${formatUSD(quote.priceCents)} total)`,
       }),
     });
     const data = await res.json();

@@ -62,7 +62,7 @@ export default function DriverPage() {
         <div className="relative z-10 max-w-2xl mx-auto">
           <div className="text-6xl mb-6">🚗</div>
           <h1 className="text-5xl font-black mb-4">
-            Drive with <span className="text-brand-cyan">On the Way</span>
+            Drive with <span className="text-brand-cyan">Cyber Juice</span>
           </h1>
           <p className="text-xl text-gray-400 leading-relaxed">
             Own a Cybertruck? Turn it into an income stream. Join our network of
@@ -183,9 +183,9 @@ export default function DriverPage() {
 
       <footer className="py-8 px-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <Link href="/" className="flex items-center justify-center gap-2 mb-2">
-          <span>⚡</span><span className="font-semibold text-white">On the Way</span>
+          <span>⚡</span><span className="font-semibold text-white">Cyber Juice</span>
         </Link>
-        <p>© {new Date().getFullYear()} On the Way. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Cyber Juice. All rights reserved.</p>
       </footer>
     </div>
   );

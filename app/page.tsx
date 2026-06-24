@@ -13,7 +13,7 @@ export default function HomePage() {
         <div className="flex items-center gap-2">
           <span className="text-2xl">⚡</span>
           <span className="text-xl font-bold tracking-tight">
-            On the <span className="text-brand-cyan">Way</span>
+            Cyber <span className="text-brand-cyan">Juice</span>
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -47,7 +47,7 @@ export default function HomePage() {
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
             Dead Battery?<br />
-            <span className="text-brand-cyan glow-cyan-text">We're On the Way.</span>
+            <span className="text-brand-cyan glow-cyan-text">Cyber Juice is Coming.</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
@@ -195,10 +195,10 @@ export default function HomePage() {
       <footer className="py-12 px-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <div className="flex items-center justify-center gap-2 mb-4">
           <span>⚡</span>
-          <span className="font-semibold text-white">On the Way</span>
+          <span className="font-semibold text-white">Cyber Juice</span>
         </div>
         <p>Emergency EV Charging · Atlanta Metro Area</p>
-        <p className="mt-2 text-gray-600">© {new Date().getFullYear()} On the Way. All rights reserved.</p>
+        <p className="mt-2 text-gray-600">© {new Date().getFullYear()} Cyber Juice. All rights reserved.</p>
       </footer>
     </div>
   );

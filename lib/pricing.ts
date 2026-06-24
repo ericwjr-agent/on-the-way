@@ -1,4 +1,4 @@
-// Pricing logic for On the Way emergency charging
+// Pricing logic for Cyber Juice emergency charging
 
 export const TIER1_MAX_MILES         = 20;    // ≤ 20 mi → $100
 export const TIER2_MAX_MILES         = 50;    // 21–50 mi → $200

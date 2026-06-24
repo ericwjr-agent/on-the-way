@@ -2,7 +2,7 @@ import BookingFlow from '@/components/BookingFlow';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Book Emergency Charge — On the Way',
+  title: 'Book Emergency Charge — Cyber Juice',
 };
 
 export default function BookPage() {

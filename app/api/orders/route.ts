@@ -43,7 +43,7 @@ export async function POST(request: Request) {
           description,
         }],
         application_context: {
-          brand_name:          'On the Way',
+          brand_name:          'Cyber Juice',
           user_action:         'PAY_NOW',
           shipping_preference: 'NO_SHIPPING',
         },
