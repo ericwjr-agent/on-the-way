@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import CybertruckIcon from '@/components/CybertruckIcon';
+import Image from 'next/image';
 
 export default function HomePage() {
   return (
@@ -63,7 +63,7 @@ export default function HomePage() {
               Request Emergency Charge
             </Link>
             <Link href="/driver" className="btn-secondary text-lg py-5 px-10 flex items-center gap-3">
-              <CybertruckIcon className="w-7 h-7" />
+              <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={32} className="object-contain" />
               Become a Driver
             </Link>
           </div>
@@ -178,7 +178,7 @@ export default function HomePage() {
       <section className="py-24 px-6 bg-gradient-to-br from-brand-purple/20 via-transparent to-brand-cyan/10">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-6">
-            <CybertruckIcon className="w-24 h-24 mx-auto" />
+            <Image src="/cybertruck.png" alt="Cybertruck" width={200} height={200} className="mx-auto object-contain" />
           </div>
           <h2 className="text-4xl font-bold mb-4">Own a Cybertruck?</h2>
           <p className="text-gray-400 text-xl mb-8">
