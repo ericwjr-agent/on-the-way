@@ -126,11 +126,9 @@ export default function HomePage() {
             <div className="card border-brand-cyan/30">
               <h3 className="font-bold text-lg mb-4 text-brand-cyan">Distance</h3>
               <ul className="space-y-3 text-gray-300 text-sm">
-                <li className="flex justify-between"><span>Up to 15 miles</span><span className="font-bold text-white">$100</span></li>
-                <li className="flex justify-between"><span>15–25 miles</span><span className="font-bold text-white">$150</span></li>
-                <li className="flex justify-between"><span>25–35 miles</span><span className="font-bold text-white">$200</span></li>
-                <li className="flex justify-between"><span>35–45 miles</span><span className="font-bold text-white">$250</span></li>
-                <li className="flex justify-between text-gray-500 text-xs pt-2 border-t border-gray-700"><span>+$50 per additional 10 miles</span></li>
+                <li className="flex justify-between"><span>Within 20 miles</span><span className="font-bold text-white">$100</span></li>
+                <li className="flex justify-between"><span>21–50 miles</span><span className="font-bold text-white">$200</span></li>
+                <li className="flex justify-between text-gray-500 text-xs pt-2 border-t border-gray-700"><span>Over 50 miles — not available yet</span></li>
               </ul>
             </div>
             <div className="card">

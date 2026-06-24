@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { priceBreakdown, formatUSD, BUFFER_MINUTES, MAX_SUPERCHARGER_MILES } from '@/lib/pricing';
+import { priceBreakdown, formatUSD, BUFFER_MINUTES, MAX_SUPERCHARGER_MILES, TIER1_MAX_MILES, TIER2_MAX_MILES } from '@/lib/pricing';
 import type { LocationData, QuoteData } from '@/lib/types';
 
 // Origin kept as a constant — not displayed in the UI
-const ORIGIN_LAT = 33.8074;
-const ORIGIN_LNG = -84.4602;
+const ORIGIN_ADDRESS = '1199 Huff Rd NW, Atlanta, GA 30318';
 
 interface Props {
   location: LocationData;
@@ -66,12 +65,11 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
     }
 
     // 2 — Distance Matrix: driver→customer AND customer→supercharger in one call
-    const origin = new window.google.maps.LatLng(ORIGIN_LAT, ORIGIN_LNG);
     const service = new window.google.maps.DistanceMatrixService();
 
     service.getDistanceMatrix(
       {
-        origins:      [origin, customerLatLng],
+        origins:      [ORIGIN_ADDRESS, customerLatLng],
         destinations: [customerLatLng, superchargerLatLng],
         travelMode:   window.google.maps.TravelMode.DRIVING,
         unitSystem:   window.google.maps.UnitSystem.IMPERIAL,
@@ -101,7 +99,27 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
           ? Math.round(scEl.distance.value * 0.000621371 * 10) / 10
           : 0;
 
-        // 3 — Block if Supercharger is too far
+        // 3a — Block if driver distance is out of range (>50 mi)
+        if (distanceMiles > TIER2_MAX_MILES) {
+          // Fire-and-forget notification email
+          fetch('/api/notify-out-of-range/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              address: location.address,
+              distanceMiles: Math.round(distanceMiles * 10) / 10,
+            }),
+          }).catch(() => {});
+
+          setError(
+            `Your location is ${(Math.round(distanceMiles * 10) / 10).toFixed(1)} miles away — ` +
+            `we’re not able to reach that area yet. We’re expanding soon!`
+          );
+          setLoading(false);
+          return;
+        }
+
+        // 3b — Block if Supercharger is too far
         if (superchargerMiles > MAX_SUPERCHARGER_MILES) {
           setError(
             `The nearest Supercharger is ${superchargerMiles.toFixed(1)} miles away — ` +
@@ -190,15 +208,12 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
         <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-4">Price Breakdown</h3>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-400">Base rate (up to 15 mi)</span>
+            <span className="text-gray-400">
+              Base rate ({quote.distanceMiles.toFixed(1)} mi
+              {quote.distanceMiles <= TIER1_MAX_MILES ? ' — within 20 mi' : ' — 21–50 mi'})
+            </span>
             <span>{formatUSD(quote.breakdown.base)}</span>
           </div>
-          {quote.breakdown.extra > 0 && (
-            <div className="flex justify-between">
-              <span className="text-gray-400">Distance surcharge</span>
-              <span>+{formatUSD(quote.breakdown.extra)}</span>
-            </div>
-          )}
           {quote.breakdown.rangeFee > 0 && (
             <div className="flex justify-between text-brand-cyan">
               <span className="text-gray-400">
