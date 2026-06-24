@@ -41,22 +41,33 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
       ? new window.google.maps.LatLng(location.lat, location.lng)
       : location.address;
 
-    // 1 — Find nearest Supercharger
+    // 1 — Find nearest Supercharger using client-side Places API
+    const customerLatLngForSearch = location.lat && location.lng
+      ? new window.google.maps.LatLng(location.lat, location.lng)
+      : new window.google.maps.LatLng(33.7490, -84.3880); // fallback: Atlanta
+
     let superchargerLatLng: google.maps.LatLng | null = null;
     let superchargerName = '';
-    try {
-      const params = location.lat && location.lng
-        ? `lat=${location.lat}&lng=${location.lng}`
-        : `lat=${location.lat}&lng=${location.lng}`;
-      const scRes  = await fetch(`/api/supercharger/?${params}`);
-      const scData = await scRes.json();
-      if (scData.lat && scData.lng) {
-        superchargerLatLng = new window.google.maps.LatLng(scData.lat, scData.lng);
-        superchargerName   = scData.vicinity ?? scData.name ?? 'Supercharger';
-      }
-    } catch {
-      // non-fatal — we'll handle below
-    }
+
+    await new Promise<void>((resolve) => {
+      const placesDiv = document.createElement('div');
+      const placesService = new window.google.maps.places.PlacesService(placesDiv);
+      placesService.nearbySearch(
+        {
+          location: customerLatLngForSearch,
+          rankBy:   window.google.maps.places.RankBy.DISTANCE,
+          keyword:  'Tesla Supercharger',
+        },
+        (results, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.length) {
+            const sc = results[0];
+            superchargerLatLng = sc.geometry?.location ?? null;
+            superchargerName   = sc.vicinity ?? sc.name ?? 'Supercharger';
+          }
+          resolve();
+        }
+      );
+    });
 
     if (!superchargerLatLng) {
       setError('Could not locate a nearby Tesla Supercharger. We may not be able to service this area.');
