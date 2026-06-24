@@ -124,11 +124,20 @@ export default function HomePage() {
 
           <div className="grid sm:grid-cols-2 gap-6 text-left">
             <div className="card border-brand-cyan/30">
-              <h3 className="font-bold text-lg mb-4 text-brand-cyan">Distance</h3>
+              <h3 className="font-bold text-lg mb-4 text-brand-cyan">Distance from Atlanta</h3>
               <ul className="space-y-3 text-gray-300 text-sm">
-                <li className="flex justify-between"><span>Within 20 miles</span><span className="font-bold text-white">$100</span></li>
-                <li className="flex justify-between"><span>21–50 miles</span><span className="font-bold text-white">$200</span></li>
-                <li className="flex justify-between text-gray-500 text-xs pt-2 border-t border-gray-700"><span>Over 50 miles — not available yet</span></li>
+                <li className="flex justify-between items-center">
+                  <span>Within 20 miles</span>
+                  <span className="font-bold text-white">$100</span>
+                </li>
+                <li className="flex justify-between items-center">
+                  <span>21–50 miles</span>
+                  <span className="font-bold text-white">$200</span>
+                </li>
+                <li className="flex justify-between items-center pt-2 border-t border-gray-700 text-gray-500 text-xs">
+                  <span>Over 50 miles</span>
+                  <span>Not available yet</span>
+                </li>
               </ul>
             </div>
             <div className="card">
@@ -140,6 +149,13 @@ export default function HomePage() {
                     <p className="text-gray-500 text-xs">Mon–Fri 7–9 AM · 4–6 PM</p>
                   </div>
                   <span className="font-bold text-amber-400">+$100</span>
+                </li>
+                <li className="flex justify-between items-start pt-3 border-t border-gray-700">
+                  <div>
+                    <p className="text-white">Range Fee</p>
+                    <p className="text-gray-500 text-xs">Per 5 mi to nearest Supercharger (after first 5 mi)</p>
+                  </div>
+                  <span className="font-bold text-brand-cyan">+$20</span>
                 </li>
                 <li className="flex justify-between items-start pt-3 border-t border-gray-700">
                   <div>
