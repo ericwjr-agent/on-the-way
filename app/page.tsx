@@ -103,7 +103,7 @@ export default function HomePage() {
               { icon: '📍', step: '01', title: 'Drop Your Pin', desc: 'Share your location or type your address. We calculate your ETA and price instantly.' },
               { icon: '💳', step: '02', title: 'Reserve & Pay', desc: 'Pay a small 10% deposit to secure your spot. No surprises — full price shown upfront.' },
               { icon: '⚡', step: '03', title: 'Cybertruck Dispatched', desc: "Your driver is on the way. You'll get a text with real-time location sharing." },
-              { icon: '🔋', step: '04', title: 'Charged & Rolling', desc: "We give you enough juice to reach the nearest charger. Simple, fast, done." },
+              { icon: '🔋', step: '04', title: 'Charged & Rolling', desc: "We give you enough juice to reach the nearest charger. For a Model 3, just 12 minutes of charge is enough for 5 miles — plenty to get you moving. Simple, fast, done." },
             ].map((item) => (
               <div key={item.step} className="card hover:border-brand-cyan/40 transition-colors group">
                 <div className="text-3xl mb-4">{item.icon}</div>
