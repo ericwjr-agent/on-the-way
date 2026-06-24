@@ -148,7 +148,7 @@ export default function HomePage() {
                     <p className="text-white">Rush Hour</p>
                     <p className="text-gray-500 text-xs">Mon–Fri 7–9 AM · 4–6 PM</p>
                   </div>
-                  <span className="font-bold text-amber-400">+$100</span>
+                  <span className="font-bold text-amber-400">+$50</span>
                 </li>
                 <li className="flex justify-between items-start pt-3 border-t border-gray-700">
                   <div>
@@ -165,9 +165,7 @@ export default function HomePage() {
                   <span className="font-bold text-brand-cyan">10%</span>
                 </li>
               </ul>
-              <div className="mt-4 p-3 bg-red-900/20 border border-red-800/40 rounded-lg text-xs text-red-400">
-                ⚠️ Highway locations not supported. Local roads only.
-              </div>
+
             </div>
           </div>
         </div>
