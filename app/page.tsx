@@ -12,8 +12,8 @@ export default function HomePage() {
                       bg-brand-dark/80 backdrop-blur-md border-b border-gray-800">
         <div className="flex items-center gap-2">
           <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={22} className="object-contain" />
-          <span className="text-xl font-bold tracking-tight">
-            Cyber <span className="text-brand-cyan">Juice</span>
+          <span className="brand-wordmark text-xl">
+            CYBER <span className="text-brand-cyan">JUICE</span>
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -195,7 +195,7 @@ export default function HomePage() {
       <footer className="py-12 px-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Image src="/cybertruck.png" alt="Cybertruck" width={28} height={20} className="object-contain" />
-          <span className="font-semibold text-white">Cyber Juice</span>
+          <span className="brand-wordmark text-sm text-white">CYBER JUICE</span>
         </div>
         <p>Emergency EV Charging · Atlanta Metro Area</p>
         <p className="mt-2 text-gray-600">© {new Date().getFullYear()} Cyber Juice. All rights reserved.</p>

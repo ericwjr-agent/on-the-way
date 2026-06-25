@@ -13,8 +13,8 @@ export default function BookPage() {
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <Link href="/" className="flex items-center gap-2">
           <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={22} className="object-contain" />
-          <span className="text-lg font-bold">
-            Cyber <span className="text-brand-cyan">Juice</span>
+          <span className="brand-wordmark text-lg">
+            CYBER <span className="text-brand-cyan">JUICE</span>
           </span>
         </Link>
         <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">

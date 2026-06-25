@@ -48,9 +48,9 @@ export default function DriverPage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl">⚡</span>
-          <span className="text-lg font-bold">
-            Cyber <span className="text-brand-cyan">Juice</span>
+          <img src="/cybertruck.png" alt="Cybertruck" width={32} height={22} className="object-contain" />
+          <span className="brand-wordmark text-lg">
+            CYBER <span className="text-brand-cyan">JUICE</span>
           </span>
         </Link>
         <Link href="/book" className="btn-primary text-sm py-2 px-5">Get Help Now</Link>
@@ -64,7 +64,7 @@ export default function DriverPage() {
             <img src="/cybertruck.png" alt="Cybertruck" width={280} className="mx-auto object-contain rounded-xl" />
           </div>
           <h1 className="text-5xl font-black mb-4">
-            Drive with <span className="text-brand-cyan">Cyber Juice</span>
+            Drive with <span className="text-brand-cyan brand-wordmark">Cyber Juice</span>
           </h1>
           <p className="text-xl text-gray-400 leading-relaxed">
             Own a Cybertruck? Turn it into an income stream. Join our network of
@@ -185,7 +185,8 @@ export default function DriverPage() {
 
       <footer className="py-8 px-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <Link href="/" className="flex items-center justify-center gap-2 mb-2">
-          <span>⚡</span><span className="font-semibold text-white">Cyber Juice</span>
+          <img src="/cybertruck.png" alt="Cybertruck" width={28} height={20} className="object-contain" />
+          <span className="brand-wordmark text-sm text-white">CYBER JUICE</span>
         </Link>
         <p>© {new Date().getFullYear()} Cyber Juice. All rights reserved.</p>
       </footer>
