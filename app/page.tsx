@@ -11,7 +11,7 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4
                       bg-brand-dark/80 backdrop-blur-md border-b border-gray-800">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">⚡</span>
+          <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={22} className="object-contain" />
           <span className="text-xl font-bold tracking-tight">
             Cyber <span className="text-brand-cyan">Juice</span>
           </span>
@@ -194,7 +194,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <span>⚡</span>
+          <Image src="/cybertruck.png" alt="Cybertruck" width={28} height={20} className="object-contain" />
           <span className="font-semibold text-white">Cyber Juice</span>
         </div>
         <p>Emergency EV Charging · Atlanta Metro Area</p>

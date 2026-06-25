@@ -1,5 +1,6 @@
 import BookingFlow from '@/components/BookingFlow';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const metadata = {
   title: 'Book Emergency Charge — Cyber Juice',
@@ -11,7 +12,7 @@ export default function BookPage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl">⚡</span>
+          <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={22} className="object-contain" />
           <span className="text-lg font-bold">
             Cyber <span className="text-brand-cyan">Juice</span>
           </span>
