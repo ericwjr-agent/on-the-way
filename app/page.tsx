@@ -47,7 +47,7 @@ export default function HomePage() {
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
             Dead Battery?<br />
-            <span className="text-brand-cyan glow-cyan-text">Cyber Juice is Coming.</span>
+            <span className="text-brand-cyan glow-cyan-text">Cyber Juice on the Way.</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
