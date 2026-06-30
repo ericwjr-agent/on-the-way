@@ -5,14 +5,15 @@
 import crypto from 'crypto';
 
 export interface BalanceLinkPayload {
-  customerName:   string;
-  customerEmail:  string;
-  customerPhone:  string;
-  address:        string;
-  remainingCents: number;
-  totalCents:     number;
-  depositCents:   number;
-  exp:            number; // Unix ms expiry
+  customerName:    string;
+  customerEmail:   string;
+  customerPhone:   string;
+  address:         string;
+  remainingCents:  number;
+  totalCents:      number;
+  depositCents:    number;
+  authorizationId: string; // PayPal auth ID — capture remaining balance without a second checkout
+  exp:             number; // Unix ms expiry
 }
 
 const SECRET = process.env.BOOKING_SECRET ?? 'dev-secret-change-in-prod';

@@ -18,14 +18,15 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
   const [error,      setError]      = useState('');
   const [processing, setProcessing] = useState(false);
 
-  /** Server-side PayPal order creation */
+  /** Authorize the FULL amount — customer only goes through PayPal once */
   const createOrder = async (): Promise<string> => {
     const res = await fetch('/api/orders/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amount:      (quote.depositCents / 100).toFixed(2),
-        description: `Cyber Juice — Emergency Charge Deposit (${formatUSD(quote.priceCents)} total)`,
+        amount:      (quote.priceCents / 100).toFixed(2), // full amount
+        description: `Cyber Juice — Emergency Charge (${formatUSD(quote.priceCents)})`,
+        intent:      'AUTHORIZE',
       }),
     });
     const data = await res.json();
@@ -37,26 +38,34 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
     setProcessing(true);
     setError('');
     try {
-      const res = await fetch(`/api/orders/${data.orderID}/capture/`, { method: 'POST' });
-      const capture = await res.json();
-      if (!res.ok || capture.error) throw new Error(capture.error ?? 'Capture failed');
-      // Fire host alert + customer confirmation (non-blocking on failure)
+      // Authorize + immediately capture the 10% deposit
+      const res = await fetch(`/api/orders/${data.orderID}/authorize/`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ depositCents: quote.depositCents }),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error ?? 'Authorization failed');
+
+      // Send emails with authorizationId embedded in the balance link
       fetch('/api/bookings/notify', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName:   contact.name,
-          customerEmail:  contact.email,
-          customerPhone:  contact.phone,
-          address:        location.address,
-          etaMinutes:     quote.etaMinutes,
-          distanceMiles:  quote.distanceMiles,
-          totalCents:     quote.priceCents,
-          depositCents:   quote.depositCents,
-          remainingCents: quote.remainingCents,
-          isRushHour:     quote.isRushHour,
+          customerName:    contact.name,
+          customerEmail:   contact.email,
+          customerPhone:   contact.phone,
+          address:         location.address,
+          etaMinutes:      quote.etaMinutes,
+          distanceMiles:   quote.distanceMiles,
+          totalCents:      quote.priceCents,
+          depositCents:    quote.depositCents,
+          remainingCents:  quote.remainingCents,
+          isRushHour:      quote.isRushHour,
+          authorizationId: result.authorizationId,
         }),
       }).catch(console.warn);
+
       onSuccess();
     } catch (err: any) {
       setError(err?.message ?? 'Payment failed. Please try again.');

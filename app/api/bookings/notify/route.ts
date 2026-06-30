@@ -11,6 +11,7 @@ export async function POST(request: Request) {
       customerName, customerEmail, customerPhone,
       address, etaMinutes, distanceMiles,
       totalCents, depositCents, remainingCents, isRushHour,
+      authorizationId,
     } = body;
 
     // Build the 72-hour balance payment link
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
       remainingCents,
       totalCents,
       depositCents,
+      authorizationId,
       exp: Date.now() + 72 * 60 * 60 * 1000,
     });
 

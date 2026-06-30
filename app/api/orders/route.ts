@@ -23,7 +23,7 @@ async function getAccessToken(): Promise<string> {
 
 export async function POST(request: Request) {
   try {
-    const { amount, description } = await request.json();
+    const { amount, description, intent = 'AUTHORIZE' } = await request.json();
 
     const accessToken = await getAccessToken();
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        intent: 'CAPTURE',
+        intent,
         purchase_units: [{
           amount: {
             currency_code: 'USD',
