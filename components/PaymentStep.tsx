@@ -41,13 +41,68 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
       const res = await fetch(`/api/orders/${data.orderID}/capture/`, { method: 'POST' });
       const capture = await res.json();
       if (!res.ok || capture.error) throw new Error(capture.error ?? 'Capture failed');
-      await sendEmailAlert();
+      // Generate balance link and fire both emails in parallel
+      const balanceLink = await generateBalanceLink();
+      await Promise.all([
+        sendEmailAlert(),
+        sendCustomerConfirmation(balanceLink),
+      ]);
       onSuccess();
     } catch (err: any) {
       setError(err?.message ?? 'Payment failed. Please try again.');
       setProcessing(false);
     }
   };
+
+  async function generateBalanceLink(): Promise<string> {
+    try {
+      const res = await fetch('/api/bookings/generate-link', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName:   contact.name,
+          customerEmail:  contact.email,
+          customerPhone:  contact.phone,
+          address:        location.address,
+          remainingCents: quote.remainingCents,
+          totalCents:     quote.priceCents,
+          depositCents:   quote.depositCents,
+        }),
+      });
+      const data = await res.json();
+      return data.link ?? '';
+    } catch {
+      return ''; // non-fatal
+    }
+  }
+
+  async function sendCustomerConfirmation(balanceLink: string) {
+    const serviceId  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID;
+    const publicKey  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+    if (!serviceId || !templateId || !publicKey) return;
+
+    const now = new Date().toLocaleString('en-US', {
+      timeZone:  'America/New_York',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    try {
+      await emailjs.send(serviceId, templateId, {
+        to_email:         contact.email,
+        customer_name:    contact.name,
+        booking_time:     now,
+        customer_address: location.address,
+        total_price:      formatUSD(quote.priceCents),
+        deposit_paid:     formatUSD(quote.depositCents),
+        balance_due:      formatUSD(quote.remainingCents),
+        balance_link:     balanceLink,
+      }, publicKey);
+    } catch (err) {
+      console.warn('Customer confirmation email failed (non-fatal):', err);
+    }
+  }
 
   async function sendEmailAlert() {
     const serviceId  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
@@ -138,7 +193,7 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
 
       <p className="text-xs text-center text-gray-600">
         Secured by PayPal. You're charged {formatUSD(quote.depositCents)} now.
-        The remaining {formatUSD(quote.remainingCents)} is due when your driver arrives.
+        A payment link for the remaining {formatUSD(quote.remainingCents)} will be emailed to you after service.
       </p>
 
       {!processing && (
