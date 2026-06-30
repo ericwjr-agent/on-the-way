@@ -39,20 +39,22 @@ export async function sendBookingEmails(data: BookingEmailData) {
 /* ── Host alert ────────────────────────────────────────────────── */
 async function sendHostAlert(data: BookingEmailData) {
   return getResend().emails.send({
-    from:    getFrom(),
-    to:      getHostEmail(),
-    subject: `🚨 New Booking — ${data.customerName} @ ${data.address}`,
-    html:    hostAlertHtml(data),
+    from:     getFrom(),
+    to:       getHostEmail(),
+    replyTo:  'Eric@nativelab.co',
+    subject:  `🚨 New Booking — ${data.customerName} @ ${data.address}`,
+    html:     hostAlertHtml(data),
   });
 }
 
 /* ── Customer confirmation ─────────────────────────────────────── */
 async function sendCustomerConfirmation(data: BookingEmailData) {
   return getResend().emails.send({
-    from:    getFrom(),
-    to:      data.customerEmail,
-    subject: `⚡ Your Cyber Juice is on the way, ${data.customerName}!`,
-    html:    customerConfirmationHtml(data),
+    from:     getFrom(),
+    to:       data.customerEmail,
+    replyTo:  'Eric@nativelab.co',
+    subject:  `⚡ Your Cyber Juice is on the way, ${data.customerName}!`,
+    html:     customerConfirmationHtml(data),
   });
 }
 
