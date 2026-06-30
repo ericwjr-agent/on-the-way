@@ -17,18 +17,15 @@ export default function HomePage() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/driver" className="text-sm text-gray-400 hover:text-white transition-colors">
-            Drive with us
-          </Link>
-          <Link href="/book" className="btn-primary text-sm py-2 px-5">
-            Get Help Now
+          <Link href="/book" className="btn-primary text-sm py-2 px-5 whitespace-nowrap text-center">
+            Get Charge Now
           </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center
-                          px-6 pt-20 pb-12 bg-grid">
+      <section className="relative min-h-screen flex flex-col items-center justify-start md:justify-center
+                          px-6 pt-24 md:pt-20 pb-20 bg-grid">
 
         {/* Background glow blobs */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px]
@@ -56,15 +53,11 @@ export default function HomePage() {
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col items-center justify-center gap-4 mb-16">
             <Link href="/book"
                   className="btn-primary text-lg py-5 px-10 glow-cyan flex items-center gap-3">
               <span>⚡</span>
               Request Emergency Charge
-            </Link>
-            <Link href="/driver" className="btn-secondary text-lg py-5 px-10 flex items-center gap-3">
-              <Image src="/cybertruck.png" alt="Cybertruck" width={36} height={36} className="object-contain rounded" />
-              Become a Driver
             </Link>
           </div>
 
@@ -86,8 +79,8 @@ export default function HomePage() {
         {/* Scroll indicator */}
         <button
           onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2
-                     text-gray-600 hover:text-gray-400 text-sm animate-bounce transition-colors cursor-pointer">
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-2
+                     text-gray-600 hover:text-gray-400 text-sm animate-bounce transition-colors cursor-pointer w-max">
           <span>Learn more</span>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
