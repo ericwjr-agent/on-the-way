@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
-import emailjs from '@emailjs/browser';
 import { formatUSD } from '@/lib/pricing';
 import type { LocationData, QuoteData, ContactInfo } from '@/lib/types';
 
@@ -41,22 +40,8 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
       const res = await fetch(`/api/orders/${data.orderID}/capture/`, { method: 'POST' });
       const capture = await res.json();
       if (!res.ok || capture.error) throw new Error(capture.error ?? 'Capture failed');
-      // Generate balance link and fire both emails in parallel
-      const balanceLink = await generateBalanceLink();
-      await Promise.all([
-        sendEmailAlert(),
-        sendCustomerConfirmation(balanceLink),
-      ]);
-      onSuccess();
-    } catch (err: any) {
-      setError(err?.message ?? 'Payment failed. Please try again.');
-      setProcessing(false);
-    }
-  };
-
-  async function generateBalanceLink(): Promise<string> {
-    try {
-      const res = await fetch('/api/bookings/generate-link', {
+      // Fire host alert + customer confirmation (non-blocking on failure)
+      fetch('/api/bookings/notify', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,77 +49,24 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
           customerEmail:  contact.email,
           customerPhone:  contact.phone,
           address:        location.address,
-          remainingCents: quote.remainingCents,
+          etaMinutes:     quote.etaMinutes,
+          distanceMiles:  quote.distanceMiles,
           totalCents:     quote.priceCents,
           depositCents:   quote.depositCents,
+          remainingCents: quote.remainingCents,
+          isRushHour:     quote.isRushHour,
         }),
-      });
-      const data = await res.json();
-      return data.link ?? '';
-    } catch {
-      return ''; // non-fatal
+      }).catch(console.warn);
+      onSuccess();
+    } catch (err: any) {
+      setError(err?.message ?? 'Payment failed. Please try again.');
+      setProcessing(false);
     }
-  }
+  };
 
-  async function sendCustomerConfirmation(balanceLink: string) {
-    const serviceId  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID;
-    const publicKey  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-    if (!serviceId || !templateId || !publicKey) return;
 
-    const now = new Date().toLocaleString('en-US', {
-      timeZone:  'America/New_York',
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
 
-    try {
-      await emailjs.send(serviceId, templateId, {
-        to_email:         contact.email,
-        customer_name:    contact.name,
-        booking_time:     now,
-        customer_address: location.address,
-        total_price:      formatUSD(quote.priceCents),
-        deposit_paid:     formatUSD(quote.depositCents),
-        balance_due:      formatUSD(quote.remainingCents),
-        balance_link:     balanceLink,
-      }, publicKey);
-    } catch (err) {
-      console.warn('Customer confirmation email failed (non-fatal):', err);
-    }
-  }
 
-  async function sendEmailAlert() {
-    const serviceId  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-    const publicKey  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-    if (!serviceId || !templateId || !publicKey) return; // not configured — PayPal email covers it
-
-    const now = new Date().toLocaleString('en-US', {
-      timeZone:  'America/New_York',
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-
-    try {
-      await emailjs.send(serviceId, templateId, {
-        booking_time:     now,
-        customer_name:    contact.name,
-        customer_phone:   contact.phone,
-        customer_email:   contact.email,
-        customer_address: location.address,
-        distance_miles:   quote.distanceMiles,
-        eta_minutes:      quote.etaMinutes,
-        total_price:      formatUSD(quote.priceCents),
-        deposit_paid:     formatUSD(quote.depositCents),
-        balance_due:      formatUSD(quote.remainingCents),
-        rush_hour:        quote.isRushHour ? 'Yes (+$100)' : 'No',
-      }, publicKey);
-    } catch (err) {
-      // Non-fatal — PayPal already sends merchant notification
-      console.warn('EmailJS alert failed (non-fatal):', err);
-    }
-  }
 
   return (
     <div className="space-y-6">
