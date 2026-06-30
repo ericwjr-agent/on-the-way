@@ -12,9 +12,10 @@ export default function HomePage() {
                       bg-brand-dark/80 backdrop-blur-md border-b border-gray-800">
         <div className="flex items-center gap-2">
           <Image src="/cybertruck.png" alt="Cybertruck" width={32} height={22} className="object-contain" />
-          <span className="brand-wordmark text-xl">
-            CYBER <span className="text-brand-cyan">JUICE</span>
-          </span>
+          <div className="brand-wordmark text-base leading-none flex flex-col items-start">
+            <span>CYBER</span>
+            <span className="text-brand-cyan">JUICE</span>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/book" className="btn-primary text-sm py-2 px-5 whitespace-nowrap text-center">
@@ -79,8 +80,8 @@ export default function HomePage() {
         {/* Scroll indicator */}
         <button
           onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-2
-                     text-gray-600 hover:text-gray-400 text-sm animate-bounce transition-colors cursor-pointer w-max">
+          className="flex flex-col items-center justify-center gap-2 mt-10
+                     text-gray-600 hover:text-gray-400 text-sm animate-bounce transition-colors cursor-pointer">
           <span>Learn more</span>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
