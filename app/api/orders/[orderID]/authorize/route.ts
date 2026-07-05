@@ -32,7 +32,7 @@ export async function POST(
   { params }: { params: { orderID: string } },
 ) {
   try {
-    const { depositCents } = await request.json();
+    await request.json(); // body reserved for future use
     const accessToken = await getAccessToken();
 
     // Step 1 — authorize the order
@@ -56,29 +56,8 @@ export async function POST(
       return NextResponse.json({ error: 'Authorization failed' }, { status: 500 });
     }
 
-    // Step 2 — partial capture: deposit only (final_capture: false)
-    const depositAmount = (depositCents / 100).toFixed(2);
-    const captureRes = await fetch(
-      `${PAYPAL_API}/v2/payments/authorizations/${authorizationId}/capture`,
-      {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          amount:        { currency_code: 'USD', value: depositAmount },
-          final_capture: false,
-        }),
-      },
-    );
-    const captureData = await captureRes.json();
-
-    if (captureData.status !== 'COMPLETED') {
-      console.error('Deposit capture failed:', captureData);
-      return NextResponse.json({ error: 'Deposit capture failed' }, { status: 500 });
-    }
-
+    // No immediate capture — full amount is held and charged only when
+    // the customer confirms delivery via /confirm-delivery?token=...
     return NextResponse.json({ authorizationId });
   } catch (err) {
     console.error('authorize route error:', err);

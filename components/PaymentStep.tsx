@@ -47,7 +47,7 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
       const result = await res.json();
       if (!res.ok || result.error) throw new Error(result.error ?? 'Authorization failed');
 
-      // Send emails with authorizationId embedded in the balance link
+      // Send emails — full amount is held, charged when customer confirms delivery
       fetch('/api/bookings/notify', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,8 +59,8 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
           etaMinutes:      quote.etaMinutes,
           distanceMiles:   quote.distanceMiles,
           totalCents:      quote.priceCents,
-          depositCents:    quote.depositCents,
-          remainingCents:  quote.remainingCents,
+          depositCents:    0,
+          remainingCents:  quote.priceCents,
           isRushHour:      quote.isRushHour,
           authorizationId: result.authorizationId,
         }),
@@ -87,13 +87,13 @@ export default function PaymentStep({ location, quote, contact, onSuccess, onBac
             <span className="text-gray-400">Service total</span>
             <span>{formatUSD(quote.priceCents)}</span>
           </div>
-          <div className="flex justify-between text-brand-cyan font-semibold">
-            <span>Deposit charged today (10%)</span>
-            <span>{formatUSD(quote.depositCents)}</span>
+          <div className="flex justify-between text-brand-cyan font-semibold pt-2 border-t border-gray-700">
+            <span>⚡ Card authorized today</span>
+            <span>{formatUSD(quote.priceCents)}</span>
           </div>
-          <div className="flex justify-between text-gray-500 text-xs pt-2 border-t border-gray-700">
-            <span>Balance due on arrival</span>
-            <span>{formatUSD(quote.remainingCents)}</span>
+          <div className="flex justify-between text-gray-500 text-xs">
+            <span>Charged when you confirm delivery</span>
+            <span>no charge yet</span>
           </div>
         </div>
         <div className="space-y-1 text-xs text-gray-500 border-t border-gray-700 pt-3">

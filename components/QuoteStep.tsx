@@ -243,13 +243,8 @@ export default function QuoteStep({ location, onNext, onBack }: Props) {
             <span>Total</span>
             <span className="text-white">{formatUSD(quote.priceCents)}</span>
           </div>
-          <div className="flex justify-between text-brand-cyan font-semibold">
-            <span>Deposit today (10%)</span>
-            <span>{formatUSD(quote.depositCents)}</span>
-          </div>
-          <div className="flex justify-between text-gray-400 text-xs">
-            <span>Balance due on arrival</span>
-            <span>{formatUSD(quote.remainingCents)}</span>
+          <div className="flex justify-between text-brand-cyan text-xs pt-2">
+            <span>⚡ Card held today — charged only when you confirm delivery</span>
           </div>
         </div>
       </div>

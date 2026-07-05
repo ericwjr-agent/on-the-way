@@ -114,8 +114,8 @@ function ConfirmedView({
           <Row label="Location"    value={location.address} />
           <Row label="ETA"         value={`~${quote.etaMinutes} minutes`} />
           <Row label="Total Charge" value={formatUSD(quote.priceCents)} />
-          <Row label="Deposit Paid" value={formatUSD(quote.depositCents)} className="text-green-400" />
-          <Row label="Due on Arrival" value={formatUSD(quote.remainingCents)} />
+          <Row label="Card authorized" value="held — not charged yet" className="text-brand-cyan" />
+          <Row label="Charged on delivery" value="via confirmation link" />
         </div>
       </div>
 

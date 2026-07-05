@@ -117,12 +117,14 @@ function ConfirmDeliveryContent() {
               <span className="text-gray-400">Service total</span>
               <span>{formatUSD(booking.totalCents)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Deposit paid</span>
-              <span className="text-green-400">− {formatUSD(booking.depositCents)}</span>
-            </div>
+            {booking.depositCents > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-400">Deposit paid</span>
+                <span className="text-green-400">− {formatUSD(booking.depositCents)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-bold text-base pt-2 border-t border-gray-700">
-              <span>Remaining balance</span>
+              <span>Amount to charge</span>
               <span className="text-brand-cyan">{formatUSD(booking.remainingCents)}</span>
             </div>
           </div>
