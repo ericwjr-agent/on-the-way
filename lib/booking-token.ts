@@ -14,14 +14,25 @@ export interface BalanceLinkPayload {
   depositCents:    number;
   authorizationId: string; // PayPal auth ID — capture remaining balance without a second checkout
   exp:             number; // Unix ms expiry
+  isAdmin?:        boolean; // true = driver/admin token (longer-lived)
 }
 
 const SECRET = process.env.BOOKING_SECRET ?? 'dev-secret-change-in-prod';
 
+/** 72-hour customer token */
 export function createBalanceToken(payload: BalanceLinkPayload): string {
   const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig  = crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
   return `${data}.${sig}`;
+}
+
+/** 25-day admin token — same structure, longer expiry, isAdmin: true */
+export function createAdminToken(payload: Omit<BalanceLinkPayload, 'exp' | 'isAdmin'>): string {
+  return createBalanceToken({
+    ...payload,
+    isAdmin: true,
+    exp: Date.now() + 25 * 24 * 60 * 60 * 1000,
+  });
 }
 
 export function verifyBalanceToken(token: string): BalanceLinkPayload | null {

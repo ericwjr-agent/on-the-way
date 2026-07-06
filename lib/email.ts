@@ -22,6 +22,7 @@ export interface BookingEmailData {
   isRushHour:     boolean;
   bookingTime:    string;
   balanceLink:    string;
+  adminLink:      string;
 }
 
 /* ── Send both emails in parallel ─────────────────────────────── */
@@ -120,13 +121,13 @@ function customerConfirmationHtml(d: BookingEmailData): string {
           <td style="text-align:right;color:#fff;">${formatUSD(d.totalCents)}</td>
         </tr>
         <tr>
-          <td style="padding:6px 0;color:#9ca3af;">Deposit Paid Today</td>
-          <td style="text-align:right;color:#34d399;font-weight:600;">${formatUSD(d.depositCents)}</td>
+          <td style="padding:6px 0;color:#9ca3af;">Card authorized (held)</td>
+          <td style="text-align:right;color:#00d4ff;font-weight:600;">${formatUSD(d.totalCents)}</td>
         </tr>
         <tr style="border-top:1px solid #374151;">
-          <td style="padding:10px 0 4px;font-weight:700;font-size:15px;">Balance Due on Arrival</td>
+          <td style="padding:10px 0 4px;font-weight:700;font-size:15px;">Charged on confirmation</td>
           <td style="text-align:right;padding:10px 0 4px;font-weight:700;font-size:15px;color:#00d4ff;">
-            ${formatUSD(d.remainingCents)}
+            ${formatUSD(d.totalCents)}
           </td>
         </tr>
       </table>
@@ -188,7 +189,7 @@ function hostAlertHtml(d: BookingEmailData): string {
     </div>
 
     <!-- Financials -->
-    <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;">
+    <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-bottom:24px;">
       <p style="margin:0 0 14px;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280;">
         Financials
       </p>
@@ -197,15 +198,29 @@ function hostAlertHtml(d: BookingEmailData): string {
           <td style="padding:6px 0;color:#9ca3af;">Service Total</td>
           <td style="text-align:right;color:#fff;font-weight:600;">${formatUSD(d.totalCents)}</td>
         </tr>
-        <tr>
-          <td style="padding:6px 0;color:#9ca3af;">Deposit Collected</td>
-          <td style="text-align:right;color:#34d399;font-weight:600;">${formatUSD(d.depositCents)}</td>
-        </tr>
         <tr style="border-top:1px solid #374151;">
-          <td style="padding:10px 0 4px;font-weight:700;">Balance to Collect</td>
+          <td style="padding:10px 0 4px;font-weight:700;">Authorized (held)</td>
           <td style="text-align:right;padding:10px 0 4px;color:#00d4ff;font-weight:700;">${formatUSD(d.remainingCents)}</td>
         </tr>
       </table>
+    </div>
+
+    <!-- Admin actions -->
+    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:16px;padding:20px;">
+      <p style="margin:0 0 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280;">
+        Admin Actions (valid 25 days)
+      </p>
+      <p style="margin:0 0 12px;color:#9ca3af;font-size:13px;">
+        If the customer doesn't tap their confirmation link, use these to settle the booking:
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="${d.adminLink}"
+           style="display:inline-block;background:#00d4ff;color:#000;font-weight:700;
+                  font-size:14px;text-decoration:none;padding:12px 20px;border-radius:10px;">
+          ⚡ Capture / Release
+        </a>
+      </div>
+      <p style="margin:8px 0 0;color:#4b5563;font-size:11px;">Keep this email private — link grants payment control.</p>
     </div>
   `);
 }

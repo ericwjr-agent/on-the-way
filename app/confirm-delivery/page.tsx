@@ -23,7 +23,9 @@ function ConfirmDeliveryContent() {
   const [loadError, setLoadError] = useState('');
   const [loading,   setLoading]   = useState(true);
   const [capturing, setCapturing] = useState(false);
+  const [voiding,   setVoiding]   = useState(false);
   const [paid,      setPaid]      = useState(false);
+  const [voided,    setVoided]    = useState(false);
   const [captureError, setCaptureError] = useState('');
 
   useEffect(() => {
@@ -37,6 +39,24 @@ function ConfirmDeliveryContent() {
       })
       .catch(() => { setLoadError('Failed to load booking details.'); setLoading(false); });
   }, [token]);
+
+  const handleVoid = async () => {
+    setVoiding(true);
+    setCaptureError('');
+    try {
+      const res  = await fetch('/api/bookings/void-authorization', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? 'Failed to release hold');
+      setVoided(true);
+    } catch (err: any) {
+      setCaptureError(err?.message ?? 'Something went wrong. Please try again.');
+      setVoiding(false);
+    }
+  };
 
   const handleCapture = async () => {
     setCapturing(true);
@@ -67,6 +87,22 @@ function ConfirmDeliveryContent() {
           <h1 className="text-2xl font-bold mb-3">Link Expired</h1>
           <p className="text-gray-400 mb-8">{loadError || 'This payment link is no longer valid.'}</p>
           <Link href="/" className="btn-primary">Return Home</Link>
+        </div>
+      </div>
+    );
+  }
+
+  /* Voided */
+  if (voided) {
+    return (
+      <div className="min-h-screen bg-brand-dark text-white flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <p className="text-5xl mb-6">🔓</p>
+          <h1 className="text-2xl font-bold mb-3">Hold Released</h1>
+          <p className="text-gray-400 mb-4">
+            We've released your authorization — no charge was made.
+          </p>
+          <p className="text-gray-500 text-sm">If you have questions, reply to your confirmation email.</p>
         </div>
       </div>
     );
@@ -138,7 +174,7 @@ function ConfirmDeliveryContent() {
 
         <button
           onClick={handleCapture}
-          disabled={capturing}
+          disabled={capturing || voiding}
           className="btn-primary w-full text-lg py-5 glow-cyan flex items-center justify-center gap-3 disabled:opacity-50"
         >
           {capturing ? (
@@ -151,6 +187,22 @@ function ConfirmDeliveryContent() {
         <p className="text-xs text-center text-gray-600 mt-4">
           Your card was pre-authorized at booking. This just completes the charge.
         </p>
+
+        <div className="mt-6 pt-6 border-t border-gray-800">
+          <button
+            onClick={handleVoid}
+            disabled={capturing || voiding}
+            className="w-full flex items-center justify-center gap-2 text-gray-600
+                       hover:text-red-400 transition-colors text-sm py-2 disabled:opacity-50"
+          >
+            {voiding ? (
+              <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Releasing hold…</>
+            ) : (
+              <>I never received my Cyber Juice</>
+            )}
+          </button>
+          <p className="text-xs text-center text-gray-700 mt-1">Releases the hold with no charge</p>
+        </div>
       </div>
     </div>
   );
