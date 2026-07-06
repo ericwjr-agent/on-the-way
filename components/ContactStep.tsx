@@ -47,8 +47,8 @@ export default function ContactStep({ quote, onNext, onBack }: Props) {
           <p className="font-bold text-lg">{formatUSD(quote.priceCents)}</p>
         </div>
         <div className="text-right">
-          <p className="text-gray-400">Deposit due now</p>
-          <p className="font-bold text-lg text-brand-cyan">{formatUSD(quote.depositCents)}</p>
+          <p className="text-gray-400">Card held today</p>
+          <p className="font-bold text-lg text-brand-cyan">Charged on delivery</p>
         </div>
       </div>
 
