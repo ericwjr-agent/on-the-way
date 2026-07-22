@@ -1,8 +1,8 @@
 // Pricing logic for Cyber Juice emergency charging
 
-export const TIER1_MAX_MILES         = 20;    // ≤ 20 mi → $100
+export const TIER1_MAX_MILES         = 20;    // ≤ 20 mi → $75
 export const TIER2_MAX_MILES         = 50;    // 21–50 mi → $200
-export const TIER1_PRICE_CENTS       = 10000; // $100.00
+export const TIER1_PRICE_CENTS       = 7500;  // $75.00
 export const TIER2_PRICE_CENTS       = 20000; // $200.00
 export const RUSH_HOUR_PREMIUM       = 5000;  // $50.00
 export const BUFFER_MINUTES          = 20;
