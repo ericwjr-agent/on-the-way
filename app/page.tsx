@@ -66,7 +66,7 @@ export default function HomePage() {
           <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
             {[
               { label: 'Avg Response', value: '< 30 min' },
-              { label: 'Starting At',  value: '$100'     },
+              { label: 'Starting At',  value: '$75'      },
               { label: 'Coverage',     value: 'ATL Metro' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
@@ -125,7 +125,7 @@ export default function HomePage() {
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex justify-between items-center">
                   <span>Within 20 miles</span>
-                  <span className="font-bold text-white">$100</span>
+                  <span className="font-bold text-white">$75</span>
                 </li>
                 <li className="flex justify-between items-center">
                   <span>21–50 miles</span>
