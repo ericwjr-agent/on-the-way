@@ -102,7 +102,7 @@ function ConfirmDeliveryContent() {
           <p className="text-gray-400 mb-4">
             We've released your authorization — no charge was made.
           </p>
-          <p className="text-gray-500 text-sm">If you have questions, reply to your confirmation email.</p>
+          <p className="text-gray-500 text-sm">If you have questions, call <a href="tel:7069402887" className="text-brand-cyan hover:underline">(706) 940-2887</a> or email <a href="mailto:info@nativelab.co" className="text-brand-cyan hover:underline">info@nativelab.co</a>.</p>
         </div>
       </div>
     );

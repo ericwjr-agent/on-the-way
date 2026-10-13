@@ -188,7 +188,11 @@ export default function DriverPage() {
           <img src="/cybertruck.png" alt="Cybertruck" width={28} height={20} className="object-contain" />
           <span className="brand-wordmark text-sm text-white">CYBER JUICE</span>
         </Link>
-        <p>© {new Date().getFullYear()} Cyber Juice. All rights reserved.</p>
+        <div className="mt-3 flex flex-col items-center gap-1">
+          <a href="tel:7069402887" className="text-gray-400 hover:text-white transition-colors">📞 (706) 940-2887</a>
+          <a href="mailto:info@nativelab.co" className="text-gray-400 hover:text-white transition-colors">✉️ info@nativelab.co</a>
+        </div>
+        <p className="mt-2 text-gray-600">© {new Date().getFullYear()} Cyber Juice. All rights reserved.</p>
       </footer>
     </div>
   );
